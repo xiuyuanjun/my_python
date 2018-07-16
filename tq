@@ -1,0 +1,50 @@
+warning: LF will be replaced by CRLF in .idea/my_python.iml.
+The file will have its original line endings in your working directory.
+[1mdiff --git a/.idea/my_python.iml b/.idea/my_python.iml[m
+[1mindex d0876a7..6711606 100644[m
+[1m--- a/.idea/my_python.iml[m
+[1m+++ b/.idea/my_python.iml[m
+[36m@@ -5,4 +5,7 @@[m
+     <orderEntry type="inheritedJdk" />[m
+     <orderEntry type="sourceFolder" forTests="false" />[m
+   </component>[m
+[32m+[m[32m  <component name="TestRunnerService">[m
+[32m+[m[32m    <option name="PROJECT_TEST_RUNNER" value="Unittests" />[m
+[32m+[m[32m  </component>[m
+ </module>[m
+\ No newline at end of file[m
+[1mdiff --git a/big_file_for_csv.py b/big_file_for_csv.py[m
+[1mindex e69de29..d03f653 100644[m
+[1m--- a/big_file_for_csv.py[m
+[1m+++ b/big_file_for_csv.py[m
+[36m@@ -0,0 +1,15 @@[m
+[32m+[m[32mfrom collections import Counter[m
+[32m+[m[32mimport sys[m
+[32m+[m[32mimport time[m
+[32m+[m
+[32m+[m[32mfile_name=sys.argv[1][m
+[32m+[m[32mwith open(file_name,'r') as file:[m
+[32m+[m[32m    all_line=file.readlines()[m
+[32m+[m[32m    all_number = [num.split(',')[0] for num in all_line][m
+[32m+[m[32m    counter=dict(Counter(all_number))[m
+[32m+[m[32m    sorted_counter = sorted(counter.items(), key=lambda d: d[1], reverse=True)[m
+[32m+[m[32m    #sorted_counter 为list类型[m
+[32m+[m[32mnew_file = time.strftime("%Y%m%d%H%M%S",time.localtime()) + '_' + file_name[m
+[32m+[m[32mwith open(new_file,'w') as file:[m
+[32m+[m[32m    for l in sorted_counter:[m
+[32m+[m[32m        file.write(str(l[0]) + ','+ str(l[1]) + '\n')[m
+\ No newline at end of file[m
+[1mdiff --git a/zhaoyu.sh b/zhaoyu.sh[m
+[1mindex cb3a8ac..a1d91fc 100644[m
+[1m--- a/zhaoyu.sh[m
+[1m+++ b/zhaoyu.sh[m
+[36m@@ -1,6 +1,4 @@[m
+ #!/usr/bin/env bash[m
+ [m
+[31m-for f in `ls *anhui_chenggong.csv`;do cat ${f} >> anhui_chenggong.csv ;done[m
+[31m-for f in `ls *anhui_weizhi.csv`;do cat ${f} >> anhui_weizhi.csv ;done[m
+[31m-for f in `ls *qita_chenggong.csv`;do cat ${f} >> qita_chenggong.csv ;done[m
+[31m-for f in `ls *qita_weizhi.csv`;do cat ${f} >> qita_weizhi.csv ;done[m
+\ No newline at end of file[m
+[41m+[m
+[41m+[m
