@@ -39,8 +39,10 @@ def search(workspace):
             return os.path.join(root, 'destination.tar.gz')
 
 if __name__ == "__main__":
+    deploy_cmd="rm -rf /home/nginx/html/manager/*;tar -zxvf /home/jenkins/spacei-web/destination.tar.gz -C /home/nginx/html/manager/"
     jg = tar('dist')
     print(jg)
     print(search(workspace))
     ssh = ShellHandler(hostname='111.20.252.18',username='jenkins',password='qWeR1234!@#$',port=50022)
     ssh.send_file(search(workspace),'~/spacei-web/')
+    ssh.execute(deploy_cmd)
