@@ -25,15 +25,58 @@ def ssh_scp_put(ssh,local_file,remote_file):
     scp.put(local_file,remote_file)
     scp.close()
 
+def upload(ip,port,user,password,local_dir,remote_dir):
+    try:
+        t=paramiko.Transport((ip,port))
+        t.connect(username=user,password=password)
+        sftp=paramiko.SFTPClient.from_transport(t)
+        print('upload file start %s ' % datetime.datetime.now())
+        for root,dirs,files in os.walk(local_dir):
+            for filespath in files:
+                local_file = os.path.join(root,filespath)
+                a = local_file.replace(local_dir,'')
+                remote_file = os.path.join(remote_dir,a)
+                try:
+                    sftp.put(local_file,remote_file)
+                except Exception as e:
+                    sftp.mkdir(os.path.split(remote_file)[0])
+                    sftp.put(local_file,remote_file)
+                print("upload %s to remote %s" % (local_file,remote_file))
+            for name in dirs:
+                local_path = os.path.join(root,name)
+                a = local_path.replace(local_dir,'')
+                remote_path = os.path.join(remote_dir,a)
+                try:
+                    sftp.mkdir(remote_path)
+                    print("mkdir path %s" % remote_path)
+                except Exception as e:
+                    print(e)
+        print('upload file success %s ' % datetime.datetime.now())
+        t.close()
+    except Exception as e:
+        print(e)
 
 def my_run(ip,port,user,password):
     ssh = get_ssh(ip,port,user,password)
-    ssh.exec_command("rm -rf /usr1/linux_buildcloud-agent/plugins*")
+    # ssh.exec_command("echo 'export ICP_CI=/usr1/linux_buildcloud-agent'  >> /etc/profile")
+    # ssh.exec_command("echo 'export LCRP_HOME=/usr1/LCRP_HOME'  >> /etc/profile")
+    # ssh.exec_command("echo 'export PATH=$LCRP_HOME/bin:$PATH'  >> /etc/profile")
+    # ssh.exec_command("source /etc/profile")
+    #stdin, stdout, stderr = ssh.exec_command("grep -E \"ICP_CI|LCRP_HOME\"  /etc/profile")
+    #stdin, stdout, stderr = ssh.exec_command("ls -l /usr1/linux_buildcloud-agent")
+    #stdin, stdout, stderr = ssh.exec_command("ls -l /tmp/")
+    #stdin, stdout, stderr = ssh.exec_command("rm -rf /tmp/*")
+    upload(ip, port, user, password, 'plugins', '/tmp/')
+    stdin, stdout, stderr = ssh.exec_command("ls -l /tmp/")
     print(ip,'start put')
-    ssh_scp_put(ssh , 'plugins.tar.gz', '/usr1/linux_buildcloud-agent/')
-    print(ip, 'stop put')
-    stdin, stdout, stderr = ssh.exec_command("tar -zxvf /usr1/linux_buildcloud-agent/plugins.tar.gz -C /usr1/linux_buildcloud-agent/")
-    print(ip,stdout.read().decode())
+    #upload(ip,port,user,password,'plugins','/tmp/')
+    print(stdout.read().decode())
+    #ssh_scp_put(ssh , 'plugins.tar.gz', '/usr1/linux_buildcloud-agent/')
+    #ssh_scp_put(ssh, 'plugins.tar.gz', '/tmp/')
+    #print(ip, 'stop put')
+    #stdin, stdout, stderr = ssh.exec_command("tar -zxvf /usr1/linux_buildcloud-agent/plugins.tar.gz -C /usr1/linux_buildcloud-agent/")
+    #stdin, stdout, stderr = ssh.exec_command("ls -l /usr1/linux_buildcloud-agent/")
+    #print(stdout.read().decode())
     # 关闭连接
     ssh.close()
 """
@@ -100,8 +143,8 @@ servers_5=[
     ['10.184.46.239      ', 'EulerOS_123'],
     ['10.184.49.253      ', 'EulerOS_123']
 ]
-
-servers=servers_5
+test=['10.184.152.147      ', 'EulerOS_123']
+servers=servers_2
 
 
 if __name__ == '__main__':
