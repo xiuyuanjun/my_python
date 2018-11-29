@@ -50,3 +50,59 @@ ssh.connect(hostname=hostname,port=port,username=username,password=password)
 stdin, stdout, stderr = ssh.exec_command("cd  /root/paramiko;mkdir lxy")
 print stdout.readlines()
 ssh.close()
+
+
+
+
+import paramiko
+#创建SSHClient 实例对象
+ssh=paramiko.SSHClient()
+#调用方法，表示没有存储远程机器的公钥，允许访问
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+#连接远程机器，地址，端口，用户名密码
+ssh.connect('192.168.199.236',22,'root','111111')
+#创建目录；
+cmd = 'mkdir jcy2'
+ssh.exec_command(cmd)
+#如果命令行跨行
+cmd='''echo '123
+45678
+90abc'
+ >myfile'''
+ssh.exec_command(cmd)
+#获取命令行的执行结果
+cmd ='cat myfile'
+stdin,stdout,stderr =ssh.exec_command(cmd)
+print(stdout.read()+stderr.read())
+ssh.close()
+
+        注意点：
+        exec_command每次执行都会打开一个新的channel，执行；
+        2.新的环境，不再上次执行的环境里面
+        3.所以我们不能多次调用，达到多次执行的目的
+
+例如：如下代码：
+
+ssh.exec_command('pwd')
+ssh.exec_command('mkdir jcy3')
+ssh.exec_command('cd jcy3')
+stdin,stdout,stderr =ssh.exec_command('pwd')
+
+print(stdout.read())
+ssh.close()
+
+linux 命令：free查看内存信息；
+我们以后可以在代码里面每隔5分钟，看一下内存的情况；
+
+        如下是传输文件到远程：
+
+import paramiko
+#创建SSHClient 实例对象
+ssh=paramiko.SSHClient()
+#调用方法，表示没有存储远程机器的公钥，允许访问
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+#连接远程机器，地址，端口，用户名密码
+ssh.connect('192.168.199.236',22,'root','111111')
+sftp=ssh.open_sftp()
+sftp.put('ftp1.py','home/stt/ftp1.py')
+sftp.close()
