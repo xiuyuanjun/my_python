@@ -1,0 +1,11 @@
+os.linesep字符串给出当前平台使用的行终止符。例如，Windows使用'\r'，Linux使用''而Mac使用'\r'。
+例： fileappend=open('/home/zll/new.txt','a')
+fileappend.write('zhui jia content')
+fileappend.write('')　//不用　如果使用os.linesep
+while True:
+aline=raw_input('Enter a line('.' to quit):')
+if aline != '.':
+fileappend.write('%s%s' % (aline,os.linesep))
+else:
+break
+fileappend.close()
