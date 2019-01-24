@@ -1,0 +1,201 @@
+python 类和元类(metaclass)的理解和简单运用
+
+(一) python中的类
+
+首先这里讨论的python类，都基于继承于object的新式类进行讨论。
+
+首先在python中，所有东西都是对象。这句话非常重要要理解元类我要重新来理解一下python中的类
+
+class Trick(object):
+    pass
+当python在执行带class语句的时候，会初始化一个类对象放在内存里面。例如这里会初始化一个Trick对象
+
+这个对象(类)自身拥有创建对象(通常我们说的实例，但是在python中还是对象)的能力。
+
+ 
+
+为了方便后续理解，我们可以先尝试一下在新式类中最古老厉害的关键字type。
+
+
+input:
+class Trick(object):
+    pass
+
+print type('123')
+print type(123)
+print type(Trick())
+
+output:
+<type 'str'>
+<type 'int'>
+<class '__main__.Trick'>
+
+可以看到能得到我们平时使用的 str, int, 以及我们初始化的一个实例对象Trick()
+
+ 
+
+但是下面的方法你可能没有见过，type同样可以用来动态创建一个类
+
+ 
+
+type(类名, 父类的元组（针对继承的情况，可以为空），包含属性的字典（名称和值）)
+
+这个怎么用呢，我要用这个方法创建一个类 让我们看下下面的代码
+
+input:
+print type('Trick', (), {})
+
+output:
+<class '__main__.Trick'>
+同样我们可以实例化这个类对象
+
+input:
+print type('trick', (), {})()
+
+output:
+<__main__.trick object at 0x109283450>
+可以看到，这里就是一个trick的实例对象了。
+
+ 
+
+同样的这个方法还可以初始化创建类的父类，同时也可以初始化类属性:
+
+
+input:
+class FlyToSky(object):
+    pass
+
+pw = type('Trick', (FlyToSky, ), {'laugh_at': 'hahahaha'})
+print pw().laugh_at
+print pw.__dict__
+print pw.__bases__
+print pw().__class__
+print pw().__class__.__class__
+
+
+output:
+hahahaha
+{'__module__': '__main__', 'laugh_at': 'hahahaha', '__doc__': None}
+(<class '__main__.FlyToSky'>,)
+<class '__main__.Trick'>
+<type 'type'>
+
+下面我将依次理一下上面的内容，在此之前我必须先介绍两个魔法方法：
+
+1. __class__这个方法用于查看对象属于是哪个生成的，这样理解在python中的所有东西都是对象，类对象也是对象。如果按照以前的思维来想的话就是类是元类的实例，而实例对象是类的实例。
+
+2. __bases__这个方法用于得到一个对象的父类是谁，特别注意一下__base__返回单个父类，__bases__以tuple形式返回所有父类。
+
+好了知道了这两个方法我来依次说一下每行什么意思。
+
+1. 使用type创建一个类赋值给pw type的接受的三个参数的意思分辨是(类的名称， 类是否有父类(), 类的属性字典{})
+
+2. 这里初始化一个类的实例，然后尝试去获得类属性 的laugh_at 属性值，然后得到结果hahahaha
+
+3. 取一个pw的也就是我们常见类的类字典数据
+
+4. 拿到pw的父类，结果是我们指定的 FlyToSky
+
+5. pw的实例pw()属于哪个类初始化的，可以看到是class Trick 
+
+6. 我们再看class trick是谁初始化的？ 就是元类type了
+
+ 
+
+(二) 什么是元类以及简单运用
+
+这一切介绍完之后我们总算可以进入正题
+
+到底什么是元类？通俗的就是说，元类就是创建类的类。。。这样听起来是不是超级抽象？
+
+来看看这个
+
+Trick = MetaClass()
+MyObject = Trick()
+上面我们已经介绍了，搞一个Trick可以直接这样
+
+Trick = type('Trick', (), {})
+可以这样其实就是因为，Type实际上是一个元类，用他可以去创建类。什么是元类刚才说了，元类就是创建类的类。也可以说他就是一个类的创建工厂。
+
+ 
+
+类上面的__metaclass__属性，相信愿意了解元类细节的盆友，都肯定见过这个东西，而且为之好奇。不然我不知道是什么支撑你看到这里的😂。使用了__metaclass__这个魔法方法就意味着就会用__metaclass__指定的元类来创建类了。
+
+ 
+
+class Trick(FlyToSky):
+    pass
+当我们在创建上面的类的时候，python做了如下的操作：
+
+Trick中有__metaclass__这个属性吗？如果有，那么Python会在内存中通过__metaclass__创建一个名字为Trick的类对象，也就是Trick这个东西。如果Python没有找到__metaclass__，它会继续在自己的父类FlyToSky中寻找__metaclass__属性，并且尝试以__metaclass__指定的方法创建一个Trick类对象。如果Python在任何一个父类中都找不到__metaclass__，它也不会就此放弃，而是去模块中搜寻是否有__metaclass__的指定。如果还是找不到，好吧那就是使用默认的type来创建Trick。
+
+ 
+
+那么问题来了，我们要在__metaclass__中放置什么呢？答案是可以创建一个类的东西，type,或者任何用到type或子类化type的东西都行。
+
+ 
+
+(三) 自定义元类
+
+自定义类的的目的，我总结了一下就是拦截类的创建，然后修改一些特性，然后返回该类。是不是有点熟悉？没错，就是感觉是装饰器干的事情，只是装饰器是修饰一个函数，同样是一个东西进去，然后被额外加了一些东西，最后被返回。
+
+其实除了上面谈到的制定一个__metaclass__并不需要赋值给它的不一定要是正式类，是一个函数也可以。要创建一个使所有模块级别都是用这个元类创建类的话，在模块级别设定__metaclass__就可以了。先写一个来试试看，我还是延用stackoverflow上面那个哥们的例子，将所有的属性都改为大写的。🤗
+
+ 
+
+来看这个例子：
+
+
+input:
+def upper_attr(class_name, class_parents, class_attr):
+    """
+    返回一个对象,将属性都改为大写的形式
+    :param class_name:  类的名称
+    :param class_parents: 类的父类tuple
+    :param class_attr: 类的参数
+    :return: 返回类
+    """
+    # 生成了一个generator
+    attrs = ((name, value) for name, value in class_attr.items() if not name.startswith('__'))
+    uppercase_attrs = dict((name.upper(), value) for name, value in attrs)
+    return type(class_name, class_parents, uppercase_attrs)
+
+__metaclass__ = upper_attr
+
+pw = upper_attr('Trick', (), {'bar': 0})
+print hasattr(pw, 'bar')
+print hasattr(pw, 'BAR')
+print pw.BAR
+
+output:
+False
+True
+0
+
+可以从上面看到，我实现了一个元类(metaclass)， 然后指定了模块使用这个元类来创建类，所以当我下面使用type进行类创建的时候，可以发现小写的bar参数被替换成了大写的BAR参数，并且在最后我调用了这个类属性并，打印了它。
+
+ 
+
+上面我们使用了函数做元类传递给类，下面我们使用一个正式类来作为元类传递给__metaclass__
+
+
+class UpperAttrMetaClass(type):
+    def __new__(mcs, class_name, class_parents, class_attr):
+        attrs = ((name, value) for name, value in class_attr.items() if not name.startswith('__'))
+        uppercase_attrs = dict((name.upper(), value) for name, value in attrs)
+        return super(UpperAttrMetaClass, mcs).__new__(mcs, class_name, class_parents, uppercase_attrs)
+
+
+class Trick(object):
+    __metaclass__ = UpperAttrMetaClass
+    bar = 12
+    money = 'unlimited'
+
+print Trick.BAR
+print Trick.MONEY
+
+ 
+
+总结：
+
+啊好累好累终于写完了。。。写了好久，总之就像我上面说的，略带一点装饰器的思路去理解元类这件事情，可能会让你豁然开朗。元类这种黑暗魔法按照常理来说是不应该被广泛使用的，从写业务代码一年差不多一年，除了在完成kepler项目的时候稍微黑魔法了一下(实际是根本不需要这样操作)，其他地方都没有用到过。等到真正需要的时候，你可能不会去思考为什么要去使用，而是因为要解决问题所以就是要这样写，所以才出现了元类这种东西。我是这样理解的，一个东西存在的真正意义就在于你可以用这个东西去解决以前难以解决的问题，可以让难以解决的问题变得简单起来，而不是为了炫技让一个问题变得复杂起来。
