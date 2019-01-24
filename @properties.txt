@@ -1,0 +1,100 @@
+重看狗书,看到对User表定义的时候有下面两行
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+1
+2
+3
+4
+5
+6
+7
+遂重温下这个property的使用
+
+在我们定义数据库字段类的时候,往往需要对其中的类属性做一些限制,一般用get和set方法来写,那在python中,我们该怎么做能够少写代码,又能优雅的实现想要的限制,减少错误的发生呢,这时候就需要我们的@property闪亮登场啦,巴拉巴拉能量……..
+
+用代码来举例子更容易理解,比如一个学生成绩表定义成这样
+
+class Student(object):
+
+    def get_score(self):
+        return self._score
+
+    def set_score(self, value):
+        if not isinstance(value, int):
+            raise ValueError('score must be an integer!')
+        if value < 0 or value > 100:
+            raise ValueError('score must between 0 ~ 100!')
+        self._score = value
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+我们调用的时候需要这么调用:
+
+>>> s = Student()
+>>> s.set_score(60) # ok!
+>>> s.get_score()
+60
+>>> s.set_score(9999)
+Traceback (most recent call last):
+  ...
+ValueError: score must between 0 ~ 100!
+1
+2
+3
+4
+5
+6
+7
+8
+但是为了方便,节省时间,我们不想写s.set_score(9999)啊,直接写s.score = 9999不是更快么,加了方法做限制不能让调用的时候变麻烦啊,@property快来帮忙….
+
+class Student(object):
+
+    @property
+    def score(self):
+        return self._score
+
+    @score.setter
+    def score(self,value):
+        if not isinstance(value, int):
+            raise ValueError('分数必须是整数才行呐')
+        if value < 0 or value > 100:
+            raise ValueError('分数必须0-100之间')
+        self._score = value
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+看上面代码可知,把get方法变为属性只需要加上@property装饰器即可,此时@property本身又会创建另外一个装饰器@score.setter,负责把set方法变成给属性赋值,这么做完后,我们调用起来既可控又方便
+
+>>> s = Student()
+>>> s.score = 60 # OK，实际转化为s.set_score(60)
+>>> s.score # OK，实际转化为s.get_score()
+60
+>>> s.score = 9999
+Traceback (most recent call last):
+  ...
+ValueError: score must between 0 ~ 100!
