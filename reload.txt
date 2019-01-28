@@ -1,0 +1,10 @@
+import sys 
+reload(sys) 
+sys.setdefaultencoding(‘utf-8’) 
+以上是python2的写法，但是在python3中这个需要已经不存在了，这么做也不会什么实际意义。 
+在Python2.x中由于str和byte之间没有明显区别，经常要依赖于defaultencoding来做转换。 
+在python3中有了明确的str和byte类型区别，从一种类型转换成另一种类型要显式指定encoding。
+
+但是仍然可以使用这个方法代替 
+import importlib,sys 
+importlib.reload(sys)
