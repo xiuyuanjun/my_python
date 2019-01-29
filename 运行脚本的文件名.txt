@@ -1,0 +1,1 @@
+os.path.abspath(sys.argv[0].rstrip('.py'))
