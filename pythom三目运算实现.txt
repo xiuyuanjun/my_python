@@ -1,0 +1,3 @@
+def fun(var):
+    res = [d for d in var if d > 10]
+    return res[0] if res else None
